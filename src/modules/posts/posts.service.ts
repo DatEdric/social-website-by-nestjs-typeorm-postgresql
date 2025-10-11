@@ -6,6 +6,7 @@ import {
 import { CreatePostDto } from './dto/create-post.dto';
 import { Post } from './entities/post.entity';
 import { PostRepository } from './repositories/post.repository';
+import { UpdatePostDto } from './dto/update-post.dto';
 
 @Injectable()
 export class PostsService {
@@ -18,8 +19,8 @@ export class PostsService {
   }
 
   async createNewPost(
-    createPostDto: CreatePostDto,
     userId: string,
+    createPostDto: CreatePostDto,
   ): Promise<Post> {
     const post = await this.postRepository.createPost({
       ...createPostDto,
@@ -39,12 +40,12 @@ export class PostsService {
     return posts;
   }
 
-  async update(postId: string): Promise<Post> {
-    const post = await this.postRepository.findById(postId);
-    if (!post) {
-      throw new NotFoundException('Post not found');
-    }
-    return post;
+  async update(
+    postId: string,
+    userId: string,
+    dto: UpdatePostDto,
+  ): Promise<Post | null> {
+    return await this.postRepository.updatePost(postId, userId, dto);
   }
 
   async remove(postId: string): Promise<void> {
@@ -78,4 +79,6 @@ export class PostsService {
   async getRelatedPosts(topicId: string, postId: string): Promise<Post[]> {
     return await this.postRepository.getRelatedPosts(topicId, postId);
   }
+
+  async findPostsByTopic(topicSlug: string): Promise<Post[]> {
 }

@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreatePostDto } from '../dto/create-post.dto';
 import { Post } from '../entities/post.entity';
 import { BaseRepository } from 'src/common/repositories/base-repository.repository';
 import { Topic } from '../entities/topic.entity';
+import { UpdatePostDto } from '../dto/update-post.dto';
 
 @Injectable()
 export class PostRepository extends BaseRepository<Post> {
@@ -52,6 +53,19 @@ export class PostRepository extends BaseRepository<Post> {
       .andWhere('post.deleted_at IS NULL')
       .orderBy('post.created_at', 'DESC')
       .getMany();
+  }
+
+  async updatePost(
+    postId: string,
+    userId: string,
+    dto: UpdatePostDto,
+  ): Promise<Post | null> {
+    const post = await this.findById(postId);
+    if (!post || post.author.id !== userId) {
+      throw new NotFoundException('Post not found or unauthorized');
+    }
+    Object.assign(post, dto);
+    return await this.repo.save(post);
   }
 
   async getPostsWithRelations(page: number = 1, limit: number = 10) {

@@ -1,9 +1,16 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
+  ParseIntPipe,
+  ParseUUIDPipe,
   Post,
+  Put,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -16,6 +23,11 @@ import { AuthRequest } from 'src/common/interfaces/auth-request.interface';
 import { CreatePostDto } from './dto/create-post.dto';
 import { GetPostDto } from './dto/get-post.dto';
 import { PostsService } from './posts.service';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { User } from '../user/entities/user.entity';
+import { UpdatePostDto } from './dto/update-post.dto';
+import { Http } from 'winston/lib/winston/transports';
+import { Post, Post } from './entities/post.entity';
 
 @ApiBearerAuth('BearerAuth')
 @UseGuards(JwtAuthGuard)
@@ -43,9 +55,45 @@ export class PostsController {
   @Post()
   @Roles(UserRole.AUTHOR)
   async createPost(
-    @Request() req: AuthRequest,
+    @CurrentUser() user: User,
     @Body() createPostDto: CreatePostDto,
   ): Promise<any> {
-    return await this.postsService.createNewPost(createPostDto, req.user.id);
+    return await this.postsService.createNewPost(user.id, createPostDto);
+  }
+
+  @Put(':id')
+  async updatePost(
+    @CurrentUser() user: User,
+    @Param('id') postId: string,
+    @Body() updatePostDto: UpdatePostDto,
+  ): Promise<any> {
+    return await this.postsService.update(postId, user.id, updatePostDto);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deletePost(
+    @CurrentUser() user: User,
+    @Param('id', ParseUUIDPipe) postId: string,
+  ): Promise<void> {
+    return await this.postsService.remove(postId);
+  }
+
+  @Put('restore/:id')
+  async restorePost(@Param('id', ParseUUIDPipe) postId: string): Promise<void> {
+    return await this.postsService.restore(postId);
+  }
+
+  @Get()
+  async getAll(
+    @Query('page', ParseIntPipe) page: number,
+    @Query('limit', ParseIntPipe) limit: number,
+  ): Promise<GetPostDto[]> {
+    return await this.postsService.getPostsWithRelations(page, limit);
+  }
+
+  @Get('topic/:slug')
+  async findbyTopic(@Param('slug') topicSlug: string) {
+    return await this.postsService.findPostsByTopic(topicSlug);
   }
 }

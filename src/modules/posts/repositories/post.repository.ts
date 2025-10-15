@@ -6,6 +6,9 @@ import { Post } from '../entities/post.entity';
 import { BaseRepository } from 'src/common/repositories/base-repository.repository';
 import { Topic } from '../entities/topic.entity';
 import { UpdatePostDto } from '../dto/update-post.dto';
+import { PaginatedResponseDto } from '../../../common/dtos/paginated-response.dto';
+import { GetPostDto } from '../dto/get-post.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class PostRepository extends BaseRepository<Post> {
@@ -68,7 +71,10 @@ export class PostRepository extends BaseRepository<Post> {
     return await this.repo.save(post);
   }
 
-  async getPostsWithRelations(page: number = 1, limit: number = 10) {
+  async getPostsWithRelations(
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<PaginatedResponseDto<GetPostDto>> {
     const skip = (page - 1) * limit;
 
     const [data, total] = await this.repo
@@ -81,15 +87,17 @@ export class PostRepository extends BaseRepository<Post> {
       .take(limit)
       .getManyAndCount();
 
-    return {
-      data,
+    return new PaginatedResponseDto<GetPostDto>({
+      data: plainToInstance(GetPostDto, data, {
+        excludeExtraneousValues: true,
+      }),
       total,
       page,
       limit,
       totalPages: Math.ceil(total / limit),
       hasNext: page < Math.ceil(total / limit),
       hasPrevious: page > 1,
-    };
+    });
   }
 
   async findPostsByTopic(topicSlug: string): Promise<Post[]> {
@@ -167,7 +175,7 @@ export class PostRepository extends BaseRepository<Post> {
     authorId: string,
     page: number = 1,
     limit: number = 10,
-  ) {
+  ): Promise<PaginatedResponseDto<Post>> {
     const skip = (page - 1) * limit;
 
     const [data, total] = await this.repo

@@ -7,6 +7,9 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { Post } from './entities/post.entity';
 import { PostRepository } from './repositories/post.repository';
 import { UpdatePostDto } from './dto/update-post.dto';
+import { PaginatedResponseDto } from '../../common/dtos/paginated-response.dto';
+import { GetPostDto } from './dto/get-post.dto';
+import { throws } from 'assert';
 
 @Injectable()
 export class PostsService {
@@ -81,4 +84,58 @@ export class PostsService {
   }
 
   async findPostsByTopic(topicSlug: string): Promise<Post[]> {
+    const posts = await this.postRepository.findPostsByTopic(topicSlug);
+    if (!posts) {
+      throw new NotFoundException('Posts not found for the given topic');
+    }
+    return posts;
+  }
+
+  async findPostsByStatus(status: string): Promise<Post[]> {
+    const posts = await this.postRepository.findPostsByStatus(status);
+    if (!posts) {
+      throw new NotFoundException('Posts not found for the given status');
+    }
+    return posts;
+  }
+
+  async getPopularPosts(limit: number): Promise<Post[]> {
+    const posts = await this.postRepository.getPopularPosts(limit);
+    if (!posts) {
+      throw new NotFoundException('No popular posts found');
+    }
+    return posts;
+  }
+
+  async getAuthorPosts(
+    authorId: string,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<PaginatedResponseDto<GetPostDto>> {
+    const posts = await this.postRepository.getAuthorPostsPaginated(
+      authorId,
+      page,
+      limit,
+    );
+    if (!posts) {
+      throw new NotFoundException('No posts found for the given author');
+    }
+    return posts;
+  }
+
+  async getDrafts(userId: string): Promise<Post[]> {
+    const drafts = await this.postRepository.getDraftPosts(userId);
+    if (!drafts) {
+      throw new NotFoundException('No drafts found for the given user');
+    }
+    return drafts;
+  }
+
+  async searchPosts(searhTerm: string): Promise<Post[] | null> {
+    const result = await this.postRepository.searchPosts(searhTerm);
+    if (!result) {
+      throw new NotFoundException('No result found for the given keyword');
+    }
+    return result;
+  }
 }

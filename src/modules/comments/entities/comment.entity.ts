@@ -5,7 +5,9 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -37,8 +39,31 @@ export class Comment {
   isDeleted: boolean;
 
   //relation
-  @ManyToOne(() => Post, (post) => post.comments)
+  @ManyToOne(() => Post, (post) => post.comments, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'post_id' })
   post: Post;
-  @ManyToOne(() => User, (user) => user.comments, { eager: true })
+  @Column()
+  post_id: string;
+
+  @ManyToOne(() => Comment, (comment) => comment.replies, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'parent_id' })
+  parent?: Comment | null;
+
+  @Column({ nullable: true })
+  parent_id?: string;
+
+  @OneToMany(() => Comment, (comment) => comment.parent)
+  replies?: Comment[];
+
+  @ManyToOne(() => User, (user) => user.comments, {
+    eager: true,
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'user_id' })
   user: User;
+  @Column()
+  user_di: string;
 }

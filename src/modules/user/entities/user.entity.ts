@@ -2,6 +2,8 @@ import { Membership } from 'src/common/enums/membership.enum';
 import { Privacy } from 'src/common/enums/privacy.enum';
 import { UserRole } from 'src/common/enums/user-role.enum';
 import { Comment } from 'src/modules/comments/entities/comment.entity';
+import { Follow } from 'src/modules/friends/entities/follows.entity';
+import { Friend } from 'src/modules/friends/entities/friend.entity';
 import { Post } from 'src/modules/posts/entities/post.entity';
 import {
   Column,
@@ -75,4 +77,16 @@ export class User {
 
   @OneToMany(() => Comment, (comment) => comment.user)
   comments: Comment[];
+
+  @OneToMany(() => Friend, (friend) => friend.sender)
+  sentFriendRequests: Friend[];
+
+  @OneToMany(() => Friend, (friend) => friend.receiver)
+  receivedFriendRequests: Friend[];
+
+  @OneToMany(() => Follow, (follow) => follow.follower)
+  following: Follow[];
+
+  @OneToMany(() => Follow, (follow) => follow.following)
+  followers: Follow[];
 }

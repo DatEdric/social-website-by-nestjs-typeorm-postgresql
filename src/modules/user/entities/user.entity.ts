@@ -4,6 +4,8 @@ import { UserRole } from 'src/common/enums/user-role.enum';
 import { Comment } from 'src/modules/comments/entities/comment.entity';
 import { Follow } from 'src/modules/friends/entities/follows.entity';
 import { Friend } from 'src/modules/friends/entities/friend.entity';
+import { Notification } from 'src/modules/notifications/entities/notification.entity';
+import { NotificationSetting } from 'src/modules/notifications/entities/notifications-setting.entity';
 import { Post } from 'src/modules/posts/entities/post.entity';
 import {
   Column,
@@ -89,4 +91,16 @@ export class User {
 
   @OneToMany(() => Follow, (follow) => follow.following)
   followers: Follow[];
+
+  @OneToMany(() => Notification, (notification) => notification.sender)
+  sentNotifications: Notification[];
+
+  @OneToMany(() => Notification, (notification) => notification.receiver)
+  receivedNotifications: Notification[];
+
+  @OneToMany(
+    () => NotificationSetting,
+    (notificationSetting) => notificationSetting.user,
+  )
+  notificationSettings: NotificationSetting[];
 }

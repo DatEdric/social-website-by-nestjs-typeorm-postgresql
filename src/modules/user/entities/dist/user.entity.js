@@ -13,6 +13,8 @@ var user_role_enum_1 = require("src/common/enums/user-role.enum");
 var comment_entity_1 = require("src/modules/comments/entities/comment.entity");
 var follows_entity_1 = require("src/modules/friends/entities/follows.entity");
 var friend_entity_1 = require("src/modules/friends/entities/friend.entity");
+var notification_entity_1 = require("src/modules/notifications/entities/notification.entity");
+var notifications_setting_entity_1 = require("src/modules/notifications/entities/notifications-setting.entity");
 var post_entity_1 = require("src/modules/posts/entities/post.entity");
 var typeorm_1 = require("typeorm");
 var User = /** @class */ (function () {
@@ -90,6 +92,15 @@ var User = /** @class */ (function () {
     __decorate([
         typeorm_1.OneToMany(function () { return follows_entity_1.Follow; }, function (follow) { return follow.following; })
     ], User.prototype, "followers");
+    __decorate([
+        typeorm_1.OneToMany(function () { return notification_entity_1.Notification; }, function (notification) { return notification.sender; })
+    ], User.prototype, "sentNotifications");
+    __decorate([
+        typeorm_1.OneToMany(function () { return notification_entity_1.Notification; }, function (notification) { return notification.receiver; })
+    ], User.prototype, "receivedNotifications");
+    __decorate([
+        typeorm_1.OneToMany(function () { return notifications_setting_entity_1.NotificationSetting; }, function (notificationSetting) { return notificationSetting.user; })
+    ], User.prototype, "notificationSettings");
     User = __decorate([
         typeorm_1.Entity({ name: 'users' })
     ], User);

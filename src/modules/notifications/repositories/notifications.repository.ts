@@ -23,7 +23,7 @@ export class NotificationsRepository extends BaseRepository<Notification> {
     return this.save(notification);
   }
 
-  async markAsRead(id: string) {
+  async markAsRead(id: string): Promise<Notification> {
     const noti = await this.findOne({ id } as any);
     if (!noti) throw new NotFoundException('Notification not found');
 
@@ -31,7 +31,7 @@ export class NotificationsRepository extends BaseRepository<Notification> {
     return this.save(noti);
   }
 
-  async getUserNotifications(userId: string) {
+  async getUserNotifications(userId: string): Promise<Notification[]> {
     const notifications = await this.repo.find({
       where: { receiver: { id: userId } },
       order: { created_at: 'DESC' },
@@ -42,23 +42,32 @@ export class NotificationsRepository extends BaseRepository<Notification> {
     return notifications;
   }
 
-  async deleteNotification(id: string) {
+  async deleteNotification(id: string): Promise<{ message: string }> {
     const noti = await this.findOne({ id } as any);
     if (!noti) throw new NotFoundException('Notification not found');
     await this.repo.remove(noti);
     return { message: 'Notification deleted successfully' };
   }
 
-  async markAllAsRead(userId: string) {
+  async markAllAsRead(
+    userId: string,
+  ): Promise<{ message: string; count: number }> {
     const result = await this.repo
       .createQueryBuilder()
       .update(Notification)
       .set({ is_read: true })
       .where('receiver.id = :userId', { userId })
+      .andWhere('is_read = :isRead', { isRead: false })
       .execute();
 
     if (!result.affected)
       throw new NotFoundException('No notifications to update');
-    return { message: 'All notifications marked as read' };
+    return {
+      message:
+        result.affected > 0
+          ? 'All notifications marked as read'
+          : 'No unread notifications',
+      count: result.affected || 0,
+    };
   }
 }
